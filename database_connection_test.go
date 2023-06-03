@@ -89,3 +89,67 @@ func TestQueryComplex(t *testing.T) {
 
 	}
 }
+
+func TestSqlInjection(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	username := "admin'; #"
+	password := "salah"
+
+	ctx := context.Background()
+	query := "SELECT username FROM user WHERE username = '" + username + "' AND password = '" + password + "' LIMIT 1"
+	rows, err := db.QueryContext(ctx, query)
+	if rows.Next() {
+		var username string
+		rows.Scan(username)
+		fmt.Println("sukses login", username)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Println("Login gagal")
+	}
+
+	defer rows.Close()
+}
+
+func TestQueryParams(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	username := "admin"
+	password := "admin"
+
+	ctx := context.Background()
+	query := "SELECT username FROM user WHERE username = ? AND password = ? LIMIT 1"
+	rows, err := db.QueryContext(ctx, query, username, password)
+	if rows.Next() {
+		var username string
+		rows.Scan(username)
+		fmt.Println("sukses login", username)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Println("Login gagal")
+	}
+}
+
+func TestQueryInsertSafe(t *testing.T) {
+	db := GetConnection()
+
+	defer db.Close()
+
+	username := "Doa'; DROP TABLE; #"
+	password := "Sumayah"
+	ctx := context.Background()
+
+	query := "INSERT INTO user(username,password) VALUES(?,?)"
+	_, err := db.ExecContext(ctx, query, username, password)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Success Insert Data to Database")
+}
