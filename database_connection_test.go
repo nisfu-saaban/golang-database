@@ -153,3 +153,58 @@ func TestQueryInsertSafe(t *testing.T) {
 
 	fmt.Println("Success Insert Data to Database")
 }
+
+func TestAutoIncrement(t *testing.T) {
+	db := GetConnection()
+
+	defer db.Close()
+
+	email := "bambang@UPNSEX.com"
+	comment := "Awang Asu Kntl MMK "
+	ctx := context.Background()
+
+	query := "INSERT INTO comments(email,comment) VALUES(?,?)"
+	result, err := db.ExecContext(ctx, query, email, comment)
+	if err != nil {
+		panic(err)
+	}
+	idAutoIncrease, err := result.LastInsertId()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Last Insert ID", idAutoIncrease)
+}
+
+func GetPrepare() (*sql.Stmt, *sql.DB) {
+	db := GetConnection()
+
+	ctx := context.Background()
+	query := "INSERT INTO comments(email, comment) VALUES(?,?)"
+	stmt, err := db.PrepareContext(ctx, query)
+	if err != nil {
+		panic(err)
+	}
+	return stmt, db
+}
+
+func TestExecStatement(t *testing.T) {
+
+	email := "Awang@asu.com"
+	comment := "Awang Emang Bagus"
+
+	ctx := context.Background()
+	statement, db := GetPrepare()
+	result, err := statement.ExecContext(ctx, email, comment)
+	defer db.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Comment id ", id)
+}
