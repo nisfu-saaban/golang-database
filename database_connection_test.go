@@ -208,3 +208,67 @@ func TestExecStatement(t *testing.T) {
 	}
 	fmt.Println("Comment id ", id)
 }
+
+func TestDBTransaction(t *testing.T) {
+	email := "YantoHar@UPNObong.com"
+	comment := "UKT MAHAL BOSS"
+
+	ctx := context.Background()
+	db := GetConnection()
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	query := "INSERT INTO comments(email, comment) VALUES(?,?)"
+	_, err = tx.ExecContext(ctx, query, email, comment)
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	err = tx.Rollback()
+	if err != nil {
+		panic(err)
+	}
+
+}
+
+// func GetPrepareTX() (*sql.Stmt, *sql.DB) {
+// 	db := GetConnection()
+// 	tx, err := db.Begin()
+// 	if err != nil {
+// 		tx.Rollback()
+// 		panic(err)
+// 	}
+// 	ctx := context.Background()
+// 	query := "INSERT INTO comments(email, comment) VALUES(?,?)"
+// 	stmt, err := tx.PrepareContext(ctx, query)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return stmt, db
+// }
+
+// func TestTXPrepareSTMT(t *testing.T) {
+// 	email := "Ahmad@gmail.com"
+// 	comment := "Ahmad ganteng"
+
+// 	ctx := context.Background()
+// 	stmtInsert, db := GetPrepareTX()
+// 	defer db.Close()
+
+// 	_, err := stmtInsert.ExecContext(ctx, email, comment)
+
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// }
